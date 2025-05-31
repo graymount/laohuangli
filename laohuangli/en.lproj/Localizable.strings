@@ -1,0 +1,130 @@
+/* Main Navigation */
+"today" = "Today";
+"fortune" = "Fortune";
+"auspicious_days" = "Lucky Days";
+"settings" = "Settings";
+
+/* Main Page */
+"lunar_calendar" = "Chinese Calendar";
+"today_advice" = "Today's Advice";
+"solar_term_festival" = "Solar Terms & Festivals";
+"quick_actions" = "Quick Actions";
+"today_fortune" = "Today's Fortune";
+"auspicious_query" = "Lucky Day Query";
+"reminder_settings" = "Reminder Settings";
+"app_settings" = "App Settings";
+
+/* Date Related */
+"lunar_date" = "Lunar Date";
+"solar_term" = "Solar Term";
+"festival" = "Festival";
+"zodiac_year" = "Zodiac Year";
+"weekday_sunday" = "Sunday";
+"weekday_monday" = "Monday";
+"weekday_tuesday" = "Tuesday";
+"weekday_wednesday" = "Wednesday";
+"weekday_thursday" = "Thursday";
+"weekday_friday" = "Friday";
+"weekday_saturday" = "Saturday";
+
+/* Advice Related */
+"suitable" = "Auspicious";
+"unsuitable" = "Inauspicious";
+"view_details" = "View Details";
+"share_today_advice" = "Share Today's Advice";
+
+/* Settings Page */
+"personal_info" = "Personal Info";
+"function_settings" = "Function Settings";
+"notification_settings" = "Notifications";
+"data_management" = "Data Management";
+"backup_restore" = "Backup & Restore";
+"app_info" = "App Information";
+"about_app" = "About Chinese Calendar";
+"version_info" = "Version & Information";
+"user_agreement" = "User Agreement";
+"service_terms" = "Terms of Service";
+"privacy_policy" = "Privacy Policy";
+"data_protection" = "Data Protection";
+"feedback_support" = "Feedback & Support";
+"share_app" = "Share App";
+"recommend_friends" = "Recommend to Friends";
+"rate_app" = "Rate App";
+"app_store_rating" = "App Store Rating";
+"feedback" = "Feedback";
+"feedback_suggestions" = "Feedback & Suggestions";
+
+/* Notification Settings */
+"daily_reminder" = "Daily Calendar Reminder";
+"daily_reminder_desc" = "Daily push of today's advice";
+"reminder_time" = "Reminder Time";
+"basic_reminders" = "Basic Reminders";
+"special_reminders" = "Special Reminders";
+"festival_reminder" = "Festival Reminders";
+"festival_reminder_desc" = "Reminder one day before important festivals";
+"solar_term_reminder" = "Solar Term Reminders";
+"solar_term_reminder_desc" = "Reminders on the day of 24 solar terms";
+"lunar_special_reminder" = "Lunar Special Reminders";
+"lunar_special_reminder_desc" = "Reminders on important lunar dates";
+"reminder_style" = "Reminder Style";
+"reminder_sound" = "Reminder Sound";
+"badge_display" = "Badge Display";
+"badge_display_desc" = "Show unread count on app icon";
+"permission_required" = "Notification permission required to use reminder features";
+"notification_permission_denied" = "Notification Permission Denied";
+"permission_guide" = "Please go to Settings > Chinese Calendar > Notifications to enable notification permissions.";
+"go_to_settings" = "Go to Settings";
+"permission_alert_title" = "Notification Permission Required";
+"permission_alert_message" = "Please enable notification permissions in system settings to receive calendar reminders.";
+"cancel" = "Cancel";
+"done" = "Done";
+
+/* Share Related */
+"share_text_template" = "📅 %@ (%@)\n🌙 Lunar: %@\n🐲 Zodiac: %@\n\n✅ Auspicious: %@\n❌ Inauspicious: %@\n\n#ChineseCalendar #TraditionalCulture #DailyAdvice";
+"traditional_culture" = "Traditional Culture";
+"cultural_calendar_assistant" = "Traditional Cultural Calendar Assistant";
+
+/* Error and Status Messages */
+"error_loading_data" = "Failed to load data";
+"network_error" = "Network connection error";
+"retry" = "Retry";
+"success" = "Success";
+"failed" = "Failed";
+"loading" = "Loading...";
+
+/* Fortune Related */
+"overall_fortune" = "Overall Fortune";
+"love_fortune" = "Love Fortune";
+"career_fortune" = "Career Fortune";
+"wealth_fortune" = "Wealth Fortune";
+"health_fortune" = "Health Fortune";
+"excellent" = "Excellent";
+"good" = "Good";
+"average" = "Average";
+"poor" = "Poor";
+
+/* Lucky Day Query */
+"wedding_auspicious" = "Wedding Lucky Days";
+"moving_auspicious" = "Moving Lucky Days";
+"business_auspicious" = "Business Opening Lucky Days";
+"travel_auspicious" = "Travel Lucky Days";
+"query_auspicious_days" = "Query Lucky Days";
+"date_range" = "Date Range";
+"from_date" = "From Date";
+"to_date" = "To Date";
+"search" = "Search";
+
+/* Personal Information */
+"personal_profile_setup" = "Personal Profile Setup";
+"birth_date" = "Birth Date";
+"zodiac_sign" = "Zodiac Sign";
+"chinese_zodiac" = "Chinese Zodiac";
+"save" = "Save";
+"edit" = "Edit";
+"profile_setup_completed" = "Personal information has been set up";
+
+/* About Page */
+"app_version" = "App Version";
+"developer" = "Developer";
+"contact_us" = "Contact Us";
+"technical_support" = "Technical Support"; 

@@ -1,0 +1,130 @@
+/* 主要导航 */
+"today" = "今日";
+"fortune" = "运势";
+"auspicious_days" = "吉日";
+"settings" = "设置";
+
+/* 主页面 */
+"lunar_calendar" = "老黄历";
+"today_advice" = "今日宜忌";
+"solar_term_festival" = "节气节日";
+"quick_actions" = "快速功能";
+"today_fortune" = "今日运势";
+"auspicious_query" = "吉日查询";
+"reminder_settings" = "提醒设置";
+"app_settings" = "应用设置";
+
+/* 日期相关 */
+"lunar_date" = "农历";
+"solar_term" = "节气";
+"festival" = "节日";
+"zodiac_year" = "生肖年";
+"weekday_sunday" = "星期日";
+"weekday_monday" = "星期一";
+"weekday_tuesday" = "星期二";
+"weekday_wednesday" = "星期三";
+"weekday_thursday" = "星期四";
+"weekday_friday" = "星期五";
+"weekday_saturday" = "星期六";
+
+/* 宜忌相关 */
+"suitable" = "宜";
+"unsuitable" = "忌";
+"view_details" = "查看详情";
+"share_today_advice" = "分享今日宜忌";
+
+/* 设置页面 */
+"personal_info" = "个人信息";
+"function_settings" = "功能设置";
+"notification_settings" = "通知设置";
+"data_management" = "数据管理";
+"backup_restore" = "备份与恢复";
+"app_info" = "应用信息";
+"about_app" = "关于老黄历";
+"version_info" = "版本信息与介绍";
+"user_agreement" = "用户协议";
+"service_terms" = "服务条款";
+"privacy_policy" = "隐私政策";
+"data_protection" = "数据保护说明";
+"feedback_support" = "反馈与支持";
+"share_app" = "分享应用";
+"recommend_friends" = "推荐给朋友";
+"rate_app" = "给个好评";
+"app_store_rating" = "App Store评价";
+"feedback" = "意见反馈";
+"feedback_suggestions" = "问题反馈与建议";
+
+/* 通知设置 */
+"daily_reminder" = "每日黄历提醒";
+"daily_reminder_desc" = "每天定时推送今日宜忌";
+"reminder_time" = "提醒时间";
+"basic_reminders" = "基础提醒";
+"special_reminders" = "特殊提醒";
+"festival_reminder" = "节日提醒";
+"festival_reminder_desc" = "重要节日前一天提醒";
+"solar_term_reminder" = "节气提醒";
+"solar_term_reminder_desc" = "二十四节气当天提醒";
+"lunar_special_reminder" = "初一十五提醒";
+"lunar_special_reminder_desc" = "农历重要日期提醒";
+"reminder_style" = "提醒样式";
+"reminder_sound" = "提醒声音";
+"badge_display" = "角标显示";
+"badge_display_desc" = "在应用图标显示未读数量";
+"permission_required" = "需要开启通知权限才能使用提醒功能";
+"notification_permission_denied" = "通知权限未开启";
+"permission_guide" = "请前往系统设置 > 老黄历 > 通知，开启通知权限以使用提醒功能。";
+"go_to_settings" = "前往设置";
+"permission_alert_title" = "需要通知权限";
+"permission_alert_message" = "请在系统设置中开启通知权限，以便接收黄历提醒。";
+"cancel" = "取消";
+"done" = "完成";
+
+/* 分享相关 */
+"share_text_template" = "📅 %@ (%@)\n🌙 农历: %@\n🐲 生肖: %@\n\n✅ 宜: %@\n❌ 忌: %@\n\n#老黄历 #传统文化 #每日宜忌";
+"traditional_culture" = "传统文化";
+"cultural_calendar_assistant" = "传统文化日历助手";
+
+/* 错误和提示信息 */
+"error_loading_data" = "数据加载失败";
+"network_error" = "网络连接错误";
+"retry" = "重试";
+"success" = "成功";
+"failed" = "失败";
+"loading" = "加载中...";
+
+/* 运势相关 */
+"overall_fortune" = "整体运势";
+"love_fortune" = "爱情运势";
+"career_fortune" = "事业运势";
+"wealth_fortune" = "财运";
+"health_fortune" = "健康运势";
+"excellent" = "极佳";
+"good" = "良好";
+"average" = "一般";
+"poor" = "较差";
+
+/* 吉日查询 */
+"wedding_auspicious" = "结婚吉日";
+"moving_auspicious" = "搬家吉日";
+"business_auspicious" = "开业吉日";
+"travel_auspicious" = "出行吉日";
+"query_auspicious_days" = "查询吉日";
+"date_range" = "日期范围";
+"from_date" = "开始日期";
+"to_date" = "结束日期";
+"search" = "搜索";
+
+/* 个人信息 */
+"personal_profile_setup" = "个人信息设置";
+"birth_date" = "出生日期";
+"zodiac_sign" = "星座";
+"chinese_zodiac" = "生肖";
+"save" = "保存";
+"edit" = "编辑";
+"profile_setup_completed" = "已设置个人信息";
+
+/* 关于页面 */
+"app_version" = "应用版本";
+"developer" = "开发者";
+"contact_us" = "联系我们";
+"technical_support" = "技术支持"; 

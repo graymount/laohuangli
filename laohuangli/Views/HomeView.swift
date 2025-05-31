@@ -8,6 +8,8 @@ struct HomeView: View {
     @State private var showingAdviceDetail = false
     @State private var selectedDate = Date()
     @State private var displayedMonth = Date()
+    @State private var showingShareSheet = false
+    @State private var shareItems: [Any] = []
     
     var body: some View {
         NavigationView {
@@ -50,6 +52,18 @@ struct HomeView: View {
             .background(Color.homeBackgroundGradient)
             .navigationTitle("老黄历")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if let calendarInfo = calendarInfo {
+                        Button {
+                            showShareSheet(for: calendarInfo)
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                                .foregroundColor(.auspiciousRed)
+                        }
+                    }
+                }
+            }
             .refreshable {
                 loadCalendarInfo()
             }
@@ -64,10 +78,33 @@ struct HomeView: View {
                 AdviceDetailView(advice: advice)
             }
         }
+        .sheet(isPresented: $showingShareSheet) {
+            CalendarShareSheet(items: shareItems)
+        }
     }
     
     private func loadCalendarInfo() {
         calendarInfo = calendarService.getCalendarInfo(for: currentDate)
+    }
+    
+    private func showShareSheet(for calendarInfo: CalendarDate) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy年M月d日"
+        let dateString = formatter.string(from: calendarInfo.gregorianDate)
+        
+        let shareText = """
+        📅 \(dateString) (\(calendarInfo.weekday))
+        🌙 农历: \(calendarInfo.lunarDate.month)\(calendarInfo.lunarDate.day)
+        🐲 生肖: \(calendarInfo.zodiacYear)
+        
+        ✅ 宜: \(calendarInfo.dailyAdvice.suitable.prefix(3).joined(separator: "、"))
+        ❌ 忌: \(calendarInfo.dailyAdvice.unsuitable.prefix(3).joined(separator: "、"))
+        
+        #老黄历 #传统文化 #每日宜忌
+        """
+        
+        shareItems = [shareText]
+        showingShareSheet = true
     }
 }
 
@@ -76,102 +113,84 @@ struct DateHeaderCard: View {
     let calendarInfo: CalendarDate?
     
     var body: some View {
-        VStack(spacing: 16) {
-            // 喜庆装饰边框
-            Rectangle()
-                .fill(Color.festiveRedGradient)
-                .frame(height: 4)
-                .cornerRadius(2)
-            
-            // 公历日期
-            HStack {
-                VStack(alignment: .leading, spacing: 6) {
+        VStack(spacing: 24) {
+            // 主要日期信息
+            HStack(alignment: .top) {
+                // 公历日期区域
+                VStack(alignment: .leading, spacing: 4) {
                     Text(formatGregorianDate())
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundStyle(Color.luckyRedGradient)
+                        .font(.system(size: 42, weight: .bold, design: .rounded))
+                        .foregroundStyle(Color.heroGradient)
                     
                     Text(calendarInfo?.weekday ?? "")
                         .font(.title3)
                         .fontWeight(.medium)
-                        .foregroundColor(.auspiciousRed)
+                        .foregroundColor(.secondaryText)
                 }
                 
                 Spacer()
                 
-                // 中国风装饰元素
-                ZStack {
-                    Circle()
-                        .fill(Color.festiveRedGradient)
-                        .frame(width: 60, height: 60)
-                        .shadow(color: Color.accentShadow, radius: 8, x: 0, y: 4)
+                // 装饰元素 - 简化版
+                VStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.heroGradient)
+                            .frame(width: 48, height: 48)
+                            .shadow(color: Color.primaryShadow, radius: 8, x: 0, y: 4)
+                        
+                        Image(systemName: "sun.max.fill")
+                            .font(.title2)
+                            .foregroundColor(.white)
+                    }
                     
-                    Image(systemName: "sun.max.fill")
-                        .font(.system(size: 28))
-                        .foregroundColor(.white)
+                    Text("今日")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.mutedText)
                 }
             }
             
-            // 装饰性分割线
-            Rectangle()
-                .fill(Color.celebrationGradient)
-                .frame(height: 3)
-                .cornerRadius(1.5)
-            
-            // 农历日期和生肖年
+            // 农历信息区域
             HStack {
-                VStack(alignment: .leading, spacing: 6) {
+                VStack(alignment: .leading, spacing: 4) {
                     if let lunar = calendarInfo?.lunarDate {
                         Text("\(lunar.month)\(lunar.day)")
                             .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundStyle(Color.luckyRedGradient)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primaryText)
                     }
                     
                     Text(calendarInfo?.zodiacYear ?? "")
                         .font(.subheadline)
-                        .foregroundColor(.auspiciousRed)
+                        .foregroundColor(.secondaryText)
                 }
                 
                 Spacer()
                 
-                // 农历年份装饰
-                HStack(spacing: 4) {
+                // 农历标签 - 现代化设计
+                HStack(spacing: 6) {
                     Image(systemName: "moon.stars.fill")
-                        .font(.body)
-                        .foregroundColor(.goldenYellow)
+                        .font(.caption)
+                        .foregroundColor(.auspiciousRed)
                     
                     Text("农历")
-                        .font(.body)
+                        .font(.caption)
                         .fontWeight(.semibold)
+                        .foregroundColor(.auspiciousRed)
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
                     Capsule()
                         .fill(Color.festiveAccent)
-                        .overlay(
-                            Capsule()
-                                .stroke(Color.luckyBorder, lineWidth: 1.5)
-                        )
                 )
-                .foregroundColor(.auspiciousRed)
             }
-            
-            // 底部喜庆装饰边框
-            Rectangle()
-                .fill(Color.festiveRedGradient)
-                .frame(height: 4)
-                .cornerRadius(2)
         }
         .padding(24)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.cardBackgroundGradient)
-                .shadow(color: Color.cardShadow, radius: 12, x: 0, y: 6)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.darkRedBorder, lineWidth: 2)
-                )
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.cardBackground)
+                .shadow(color: Color.cardShadow, radius: 8, x: 0, y: 4)
         )
     }
     
@@ -188,133 +207,139 @@ struct DailyAdviceCard: View {
     let onTap: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            // 顶部装饰条
-            Rectangle()
-                .fill(Color.festiveRedGradient)
-                .frame(height: 3)
-                .cornerRadius(1.5)
-            
+        VStack(alignment: .leading, spacing: 20) {
+            // 标题区域
             HStack {
-                HStack(spacing: 8) {
+                HStack(spacing: 12) {
                     ZStack {
                         Circle()
-                            .fill(Color.festiveRedGradient)
-                            .frame(width: 32, height: 32)
+                            .fill(Color.heroGradient)
+                            .frame(width: 40, height: 40)
                         
                         Image(systemName: "yin.yang")
                             .font(.title3)
                             .foregroundColor(.white)
                     }
                     
-                    Text("今日宜忌")
-                        .font(.title3)
-                        .fontWeight(.bold)
-                        .foregroundStyle(Color.luckyRedGradient)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("今日宜忌")
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(.primaryText)
+                        
+                        Text("查看详细建议")
+                            .font(.caption)
+                            .foregroundColor(.mutedText)
+                    }
                 }
                 
                 Spacer()
                 
                 Button(action: onTap) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.festiveAccent)
-                            .frame(width: 36, height: 36)
+                    HStack(spacing: 4) {
+                        Text("详情")
+                            .font(.caption)
+                            .fontWeight(.medium)
                         
-                        Image(systemName: "info.circle.fill")
-                            .font(.title3)
-                            .foregroundColor(.auspiciousRed)
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
                     }
+                    .foregroundColor(.auspiciousRed)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(Color.festiveAccent)
+                    )
                 }
             }
             
-            HStack(alignment: .top, spacing: 24) {
+            // 宜忌内容区域
+            HStack(spacing: 16) {
                 // 宜
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark.seal.fill")
-                            .foregroundColor(.jadeGreen)
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(.successGreen)
+                            .font(.title3)
+                        
                         Text("宜")
                             .font(.headline)
                             .fontWeight(.bold)
-                            .foregroundColor(.jadeGreen)
+                            .foregroundColor(.successGreen)
                     }
                     
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 8) {
                         ForEach(advice.suitable.prefix(3), id: \.self) { item in
-                            HStack(spacing: 6) {
+                            HStack(spacing: 8) {
                                 Circle()
-                                    .fill(Color.jadeGreen.opacity(0.6))
-                                    .frame(width: 4, height: 4)
+                                    .fill(Color.successGreen)
+                                    .frame(width: 6, height: 6)
                                 
                                 Text(item)
                                     .font(.subheadline)
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(.primaryText)
+                                    .lineLimit(1)
                             }
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.jadeGreen.opacity(0.08))
+                        .fill(Color.successGreen.opacity(0.05))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.jadeGreen.opacity(0.3), lineWidth: 1)
+                                .stroke(Color.successGreen.opacity(0.2), lineWidth: 1)
                         )
                 )
                 
                 // 忌
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "xmark.seal.fill")
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.auspiciousRed)
+                            .font(.title3)
+                        
                         Text("忌")
                             .font(.headline)
                             .fontWeight(.bold)
                             .foregroundColor(.auspiciousRed)
                     }
                     
-                    VStack(alignment: .leading, spacing: 6) {
+                    VStack(alignment: .leading, spacing: 8) {
                         ForEach(advice.unsuitable.prefix(3), id: \.self) { item in
-                            HStack(spacing: 6) {
+                            HStack(spacing: 8) {
                                 Circle()
-                                    .fill(Color.auspiciousRed.opacity(0.6))
-                                    .frame(width: 4, height: 4)
+                                    .fill(Color.auspiciousRed)
+                                    .frame(width: 6, height: 6)
                                 
                                 Text(item)
                                     .font(.subheadline)
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(.primaryText)
+                                    .lineLimit(1)
                             }
                         }
                     }
                 }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(16)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.festiveAccent)
+                        .fill(Color.auspiciousRed.opacity(0.05))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.luckyBorder, lineWidth: 1.5)
+                                .stroke(Color.auspiciousRed.opacity(0.2), lineWidth: 1)
                         )
                 )
             }
-            
-            // 底部装饰条
-            Rectangle()
-                .fill(Color.festiveRedGradient)
-                .frame(height: 3)
-                .cornerRadius(1.5)
         }
-        .padding(24)
+        .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.cardBackgroundGradient)
-                .shadow(color: Color.cardShadow, radius: 12, x: 0, y: 6)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.darkRedBorder, lineWidth: 2)
-                )
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.cardBackground)
+                .shadow(color: Color.cardShadow, radius: 8, x: 0, y: 4)
         )
         .onTapGesture {
             onTap()
@@ -565,67 +590,77 @@ struct MonthCalendarCard: View {
     
     var body: some View {
         VStack(spacing: 20) {
-            // 顶部装饰条
-            Rectangle()
-                .fill(Color.festiveRedGradient)
-                .frame(height: 3)
-                .cornerRadius(1.5)
-            
             // 月份导航头部
             HStack {
                 Button(action: previousMonth) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.festiveRedGradient)
-                            .frame(width: 36, height: 36)
-                            .shadow(color: Color.cardShadow, radius: 4, x: 0, y: 2)
-                        
+                    HStack(spacing: 6) {
                         Image(systemName: "chevron.left")
                             .font(.headline)
-                            .foregroundColor(.white)
+                        Text("上月")
+                            .font(.caption)
+                            .fontWeight(.medium)
                     }
+                    .foregroundColor(.auspiciousRed)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color.festiveAccent)
+                    )
                 }
                 
                 Spacer()
                 
-                Text(monthYearString)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.luckyRedGradient)
+                VStack(spacing: 2) {
+                    Text(monthYearString)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                        .foregroundColor(.primaryText)
+                    
+                    Text("农历 \(getCurrentLunarMonth())")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondaryText)
+                }
                 
                 Spacer()
                 
                 Button(action: nextMonth) {
-                    ZStack {
-                        Circle()
-                            .fill(Color.festiveRedGradient)
-                            .frame(width: 36, height: 36)
-                            .shadow(color: Color.cardShadow, radius: 4, x: 0, y: 2)
-                        
+                    HStack(spacing: 6) {
+                        Text("下月")
+                            .font(.caption)
+                            .fontWeight(.medium)
                         Image(systemName: "chevron.right")
                             .font(.headline)
-                            .foregroundColor(.white)
                     }
+                    .foregroundColor(.auspiciousRed)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(
+                        Capsule()
+                            .fill(Color.festiveAccent)
+                    )
                 }
             }
             .padding(.horizontal, 4)
             
             // 星期标题
-            HStack {
+            HStack(spacing: 0) {
                 ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { index, weekday in
                     Text(weekday)
                         .font(.subheadline)
                         .fontWeight(.bold)
-                        .foregroundColor(index == 0 || index == 6 ? .auspiciousRed : .secondary)
+                        .foregroundColor(index == 0 || index == 6 ? .auspiciousRed : .primaryText)
                         .frame(maxWidth: .infinity)
                 }
             }
             .padding(.horizontal, 4)
+            .padding(.bottom, 8)
             
-            // 日期网格
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 7), spacing: 10) {
-                ForEach(daysInMonth, id: \.self) { date in
-                    if let date = date {
+            // 日期网格 - 增加间距以适应更多信息
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 7), spacing: 12) {
+                ForEach(daysInMonth.indices, id: \.self) { index in
+                    if let date = daysInMonth[index] {
                         EnhancedCalendarDayView(
                             date: date,
                             isSelected: calendar.isDate(date, inSameDayAs: selectedDate),
@@ -637,26 +672,28 @@ struct MonthCalendarCard: View {
                         }
                     } else {
                         Color.clear
-                            .frame(height: 48)
+                            .frame(height: 52) // 匹配日期格子高度
                     }
                 }
             }
+            .padding(.horizontal, 4)
             
-            // 底部装饰条
-            Rectangle()
-                .fill(Color.festiveRedGradient)
-                .frame(height: 3)
-                .cornerRadius(1.5)
+            // 底部图例说明
+            HStack(spacing: 16) {
+                LegendItem(color: .auspiciousRed, text: "节日")
+                LegendItem(color: .successGreen, text: "节气")
+                LegendItem(color: .infoBlue, text: "纪念日")
+                LegendItem(color: .secondaryText, text: "农历")
+                Spacer()
+            }
+            .padding(.horizontal, 8)
+            .padding(.top, 8)
         }
-        .padding(24)
+        .padding(20)
         .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color.cardBackgroundGradient)
-                .shadow(color: Color.cardShadow, radius: 12, x: 0, y: 6)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.darkRedBorder, lineWidth: 2)
-                )
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.cardBackground)
+                .shadow(color: Color.cardShadow, radius: 8, x: 0, y: 4)
         )
     }
     
@@ -670,6 +707,12 @@ struct MonthCalendarCard: View {
         return ["日", "一", "二", "三", "四", "五", "六"]
     }
     
+    private func getCurrentLunarMonth() -> String {
+        let calendarService = CalendarService.shared
+        let calendarInfo = calendarService.getCalendarInfo(for: displayedMonth)
+        return calendarInfo.lunarDate.month
+    }
+    
     private var daysInMonth: [Date?] {
         guard let monthInterval = calendar.dateInterval(of: .month, for: displayedMonth),
               let monthFirstWeek = calendar.dateInterval(of: .weekOfYear, for: monthInterval.start),
@@ -681,11 +724,8 @@ struct MonthCalendarCard: View {
         var date = monthFirstWeek.start
         
         while date < monthLastWeek.end {
-            if calendar.isDate(date, equalTo: displayedMonth, toGranularity: .month) {
-                days.append(date)
-            } else {
-                days.append(nil)
-            }
+            // 包含所有日期，不论是否属于当前月份
+            days.append(date)
             date = calendar.date(byAdding: .day, value: 1, to: date) ?? date
         }
         
@@ -698,6 +738,25 @@ struct MonthCalendarCard: View {
     
     private func nextMonth() {
         displayedMonth = calendar.date(byAdding: .month, value: 1, to: displayedMonth) ?? displayedMonth
+    }
+}
+
+// MARK: - 图例组件
+struct LegendItem: View {
+    let color: Color
+    let text: String
+    
+    var body: some View {
+        HStack(spacing: 4) {
+            Circle()
+                .fill(color)
+                .frame(width: 8, height: 8)
+            
+            Text(text)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.secondaryText)
+        }
     }
 }
 
@@ -714,64 +773,91 @@ struct EnhancedCalendarDayView: View {
     var body: some View {
         Button(action: onTap) {
             VStack(spacing: 2) {
+                // 公历日期 - 主要显示
                 Text("\(Calendar.current.component(.day, from: date))")
-                    .font(.system(size: 18, weight: isSelected ? .bold : .semibold))
-                    .foregroundColor(textColor)
+                    .font(.system(size: isSelected ? 20 : 18, weight: isSelected ? .bold : .semibold))
+                    .foregroundColor(gregorianTextColor)
                 
-                // 农历日期、节日或休息日标识
+                // 农历、节日或节气信息
                 if isCurrentMonth {
-                    if let displayInfo = getDisplayInfo() {
-                        Text(displayInfo.text)
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(displayInfo.color)
-                            .lineLimit(1)
-                            .minimumScaleFactor(0.7)
+                    VStack(spacing: 1) {
+                        // 优先显示节日
+                        if let festival = getFestivalInfo() {
+                            Text(festival.text)
+                                .font(.system(size: 8, weight: .medium))
+                                .foregroundColor(festival.color)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                        }
+                        // 显示节气
+                        else if let solarTerm = getSolarTermInfo() {
+                            Text(solarTerm.text)
+                                .font(.system(size: 8, weight: .medium))
+                                .foregroundColor(solarTerm.color)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                        }
+                        // 显示农历日期
+                        else if let lunar = getLunarInfo() {
+                            Text(lunar.text)
+                                .font(.system(size: 8, weight: .medium))
+                                .foregroundColor(lunar.color)
+                                .lineLimit(1)
+                                .minimumScaleFactor(0.7)
+                        }
+                        // 保持布局稳定的占位符
+                        else {
+                            Text(" ")
+                                .font(.system(size: 8))
+                        }
                     }
                 }
             }
-            .frame(width: 48, height: 48)
+            .frame(width: 48, height: 52) // 增加高度以容纳更多信息
             .background(backgroundColor)
-            .cornerRadius(12)
+            .cornerRadius(isSelected ? 12 : 8)
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(borderColor, lineWidth: isSelected ? 2 : (isToday ? 1.5 : 0))
+                RoundedRectangle(cornerRadius: isSelected ? 12 : 8)
+                    .stroke(borderColor, lineWidth: getBorderWidth())
             )
             .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowOffset)
         }
         .buttonStyle(PlainButtonStyle())
     }
     
-    private var textColor: Color {
-        if !isCurrentMonth {
-            return .gray.opacity(0.3)
-        } else if isSelected {
-            return .white
+    private var gregorianTextColor: Color {
+        if isSelected {
+            return isToday ? .white : .auspiciousRed // 选中日期：今日用白字，其他用红字
         } else if isToday {
-            return .auspiciousRed
+            return .primaryText // 今日未选中用普通文字
+        } else if !isCurrentMonth {
+            return .mutedText // 非当前月份用灰色
         } else if isWeekend {
-            return .auspiciousRed
+            return .auspiciousRed // 周末红色
         } else {
-            return .primary
+            return .primaryText
         }
     }
     
     private var backgroundColor: Color {
         if isSelected {
-            return Color.auspiciousRed
+            return isToday ? Color.auspiciousRed : Color.clear // 只有今日被选中才用红色背景
         } else if isToday {
-            return Color.festiveAccent
+            return Color.secondaryBackground // 今日未选中用灰色背景
+        } else if !isCurrentMonth {
+            return Color.clear // 非当前月份透明背景
         } else if isFestival {
             return Color.festiveAccent
         } else {
-            return .clear
+            return Color.clear
         }
     }
     
     private var borderColor: Color {
-        if isSelected {
-            return .auspiciousRed
-        } else if isToday {
-            return .luckyBorder
+        if isSelected && !isToday {
+            return .auspiciousRed // 选中的非今日用红色边框（不论是否当前月）
+        } else if isToday && !isSelected {
+            return .secondaryText.opacity(0.5) // 今日未选中用淡灰边框
         } else {
             return .clear
         }
@@ -779,9 +865,9 @@ struct EnhancedCalendarDayView: View {
     
     private var shadowColor: Color {
         if isSelected {
-            return Color.auspiciousRed.opacity(0.4)
+            return Color.auspiciousRed.opacity(0.3)
         } else if isToday {
-            return Color.luckyBorder.opacity(0.3)
+            return Color.secondaryText.opacity(0.2)
         } else {
             return .clear
         }
@@ -805,38 +891,62 @@ struct EnhancedCalendarDayView: View {
         return calendarInfo.festival != nil && !calendarInfo.festival!.isEmpty
     }
     
-    private func getDisplayInfo() -> (text: String, color: Color)? {
+    // 获取节日信息
+    private func getFestivalInfo() -> (text: String, color: Color)? {
         let calendarInfo = calendarService.getCalendarInfo(for: date)
         
-        // 优先显示节日
         if let festival = calendarInfo.festival, !festival.isEmpty {
-            let displayText = festival.count > 4 ? String(festival.prefix(4)) : festival
-            return (displayText, .auspiciousRed)
-        }
-        
-        // 显示节气
-        if let solarTerm = calendarInfo.solarTerm, !solarTerm.isEmpty {
-            return (solarTerm, .jadeGreen)
-        }
-        
-        // 显示休息日标识
-        if isWeekend {
-            let weekday = Calendar.current.component(.weekday, from: date)
-            if weekday == 1 {
-                return ("休", .auspiciousRed.opacity(0.8))
-            } else if weekday == 7 {
-                return ("休", .auspiciousRed.opacity(0.8))
+            // 根据节日类型使用不同颜色
+            let color: Color
+            if festival.contains("节") {
+                color = .auspiciousRed // 传统节日用红色
+            } else if festival.contains("日") {
+                color = .infoBlue // 纪念日用蓝色
+            } else {
+                color = .warningOrange // 其他用橙色
             }
+            
+            // 限制显示字符数
+            let displayText = festival.count > 4 ? String(festival.prefix(3)) + "…" : festival
+            return (displayText, color)
         }
+        return nil
+    }
+    
+    // 获取节气信息
+    private func getSolarTermInfo() -> (text: String, color: Color)? {
+        let calendarInfo = calendarService.getCalendarInfo(for: date)
         
-        // 显示农历日期
+        if let solarTerm = calendarInfo.solarTerm, !solarTerm.isEmpty {
+            return (solarTerm, .successGreen) // 节气用绿色
+        }
+        return nil
+    }
+    
+    // 获取农历信息
+    private func getLunarInfo() -> (text: String, color: Color)? {
+        let calendarInfo = calendarService.getCalendarInfo(for: date)
         let lunar = calendarInfo.lunarDate
+        
+        // 农历初一显示月份
         if lunar.day == "初一" {
-            let monthText = lunar.month.count > 3 ? String(lunar.month.prefix(3)) : lunar.month
-            return (monthText, .auspiciousRed.opacity(0.7))
-        } else {
+            let monthText = lunar.month.count > 3 ? String(lunar.month.prefix(2)) : lunar.month
+            return (monthText, .auspiciousRed)
+        }
+        // 其他日期显示农历日
+        else {
             let dayText = lunar.day.count > 3 ? String(lunar.day.prefix(3)) : lunar.day
-            return (dayText, .secondary)
+            return (dayText, .secondaryText)
+        }
+    }
+    
+    private func getBorderWidth() -> CGFloat {
+        if isSelected && !isToday {
+            return 2 // 选中边框较粗（不论是否当前月）
+        } else if isToday && !isSelected {
+            return 0.5 // 今日边框较细
+        } else {
+            return 0
         }
     }
 }
