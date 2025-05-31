@@ -11,6 +11,12 @@ struct HomeView: View {
     @State private var showingShareSheet = false
     @State private var shareItems: [Any] = []
     
+    // 新增状态变量用于导航
+    @State private var showingFortuneView = false
+    @State private var showingAuspiciousDaysView = false
+    @State private var showingNotificationSettingsSheet = false
+    @State private var showingAppSettingsSheet = false
+    
     var body: some View {
         NavigationView {
             ScrollView {
@@ -42,7 +48,12 @@ struct HomeView: View {
                     }
                     
                     // 快速功能入口
-                    QuickActionsCard()
+                    QuickActionsCard(
+                        showingFortuneView: $showingFortuneView,
+                        showingAuspiciousDaysView: $showingAuspiciousDaysView,
+                        showingNotificationSettingsSheet: $showingNotificationSettingsSheet,
+                        showingAppSettingsSheet: $showingAppSettingsSheet
+                    )
                     
                     Spacer(minLength: 100)
                 }
@@ -67,19 +78,31 @@ struct HomeView: View {
             .refreshable {
                 loadCalendarInfo()
             }
+            .sheet(isPresented: $showingAdviceDetail) {
+                if let advice = calendarInfo?.dailyAdvice {
+                    AdviceDetailView(advice: advice)
+                }
+            }
+            .sheet(isPresented: $showingShareSheet) {
+                CalendarShareSheet(items: shareItems)
+            }
+            .sheet(isPresented: $showingNotificationSettingsSheet) {
+                NotificationSettingsView(settings: userService.notificationSettings)
+            }
+            .sheet(isPresented: $showingAppSettingsSheet) {
+                SettingsView()
+            }
+            .background(
+                VStack {
+                    NavigationLink(destination: FortuneView(), isActive: $showingFortuneView) { EmptyView() }
+                    NavigationLink(destination: AuspiciousDaysView(), isActive: $showingAuspiciousDaysView) { EmptyView() }
+                }
+            )
         }
         .onAppear {
             selectedDate = currentDate
             displayedMonth = currentDate
             loadCalendarInfo()
-        }
-        .sheet(isPresented: $showingAdviceDetail) {
-            if let advice = calendarInfo?.dailyAdvice {
-                AdviceDetailView(advice: advice)
-            }
-        }
-        .sheet(isPresented: $showingShareSheet) {
-            CalendarShareSheet(items: shareItems)
         }
     }
     
@@ -419,8 +442,13 @@ struct SolarTermAndFestivalCard: View {
 
 // MARK: - 快速功能卡片
 struct QuickActionsCard: View {
+    @Binding var showingFortuneView: Bool
+    @Binding var showingAuspiciousDaysView: Bool
+    @Binding var showingNotificationSettingsSheet: Bool
+    @Binding var showingAppSettingsSheet: Bool
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
+        VStack(alignment: .leading, spacing: 24) {
             // 顶部装饰条
             Rectangle()
                 .fill(Color.festiveRedGradient)
@@ -446,12 +474,12 @@ struct QuickActionsCard: View {
             
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 16) {
                 EnhancedQuickActionButton(
-                    icon: "star.fill",
+                    icon: "wand.and.stars.inverse",
                     title: "今日运势",
                     subtitle: "查看个人运势",
                     gradient: Color.festiveRedGradient
                 ) {
-                    // 跳转到运势页面
+                    showingFortuneView = true
                 }
                 
                 EnhancedQuickActionButton(
@@ -460,7 +488,7 @@ struct QuickActionsCard: View {
                     subtitle: "寻找黄道吉日",
                     gradient: Color.luckyRedGradient
                 ) {
-                    // 跳转到吉日查询
+                    showingAuspiciousDaysView = true
                 }
                 
                 EnhancedQuickActionButton(
@@ -469,7 +497,7 @@ struct QuickActionsCard: View {
                     subtitle: "设置每日提醒",
                     gradient: Color.goldenGradient
                 ) {
-                    // 跳转到设置页面
+                    showingNotificationSettingsSheet = true
                 }
                 
                 EnhancedQuickActionButton(
@@ -478,7 +506,7 @@ struct QuickActionsCard: View {
                     subtitle: "个人信息设置",
                     gradient: Color.celebrationGradient
                 ) {
-                    // 跳转到设置页面
+                    showingAppSettingsSheet = true
                 }
             }
             
