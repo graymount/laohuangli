@@ -9,9 +9,12 @@ import SwiftUI
 
 @main
 struct laohuangliApp: App {
+    @StateObject private var tabRouter = TabRouter()
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(tabRouter)
         }
     }
 }

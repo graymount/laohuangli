@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct HomeView: View {
+    @EnvironmentObject var tabRouter: TabRouter
     @StateObject private var calendarService = CalendarService.shared
     @StateObject private var userService = UserService.shared
     @State private var currentDate = Date()
@@ -11,93 +12,70 @@ struct HomeView: View {
     @State private var showingShareSheet = false
     @State private var shareItems: [Any] = []
     
-    // 新增状态变量用于导航
-    @State private var showingFortuneView = false
-    @State private var showingAuspiciousDaysView = false
     @State private var showingNotificationSettingsSheet = false
     @State private var showingAppSettingsSheet = false
     
     var body: some View {
-        NavigationView {
-            ScrollView {
-                VStack(spacing: 20) {
-                    // 顶部日期卡片
-                    DateHeaderCard(calendarInfo: calendarInfo)
-                    
-                    // 月历组件
-                    MonthCalendarCard(
-                        selectedDate: $selectedDate,
-                        displayedMonth: $displayedMonth,
-                        onDateSelected: { date in
-                            selectedDate = date
-                            currentDate = date
-                            loadCalendarInfo()
-                        }
-                    )
-                    
-                    // 今日宜忌卡片
-                    if let advice = calendarInfo?.dailyAdvice {
-                        DailyAdviceCard(advice: advice) {
-                            showingAdviceDetail = true
-                        }
+        ScrollView {
+            VStack(spacing: 20) {
+                DateHeaderCard(calendarInfo: calendarInfo)
+                MonthCalendarCard(
+                    selectedDate: $selectedDate,
+                    displayedMonth: $displayedMonth,
+                    onDateSelected: { date in
+                        selectedDate = date
+                        currentDate = date
+                        loadCalendarInfo()
                     }
-                    
-                    // 节气和节日信息
-                    if let calendarInfo = calendarInfo {
-                        SolarTermAndFestivalCard(calendarInfo: calendarInfo)
-                    }
-                    
-                    // 快速功能入口
-                    QuickActionsCard(
-                        showingFortuneView: $showingFortuneView,
-                        showingAuspiciousDaysView: $showingAuspiciousDaysView,
-                        showingNotificationSettingsSheet: $showingNotificationSettingsSheet,
-                        showingAppSettingsSheet: $showingAppSettingsSheet
-                    )
-                    
-                    Spacer(minLength: 100)
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 10)
-            }
-            .background(Color.homeBackgroundGradient)
-            .navigationTitle("老黄历")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    if let calendarInfo = calendarInfo {
-                        Button {
-                            showShareSheet(for: calendarInfo)
-                        } label: {
-                            Image(systemName: "square.and.arrow.up")
-                                .foregroundColor(.auspiciousRed)
-                        }
-                    }
-                }
-            }
-            .refreshable {
-                loadCalendarInfo()
-            }
-            .sheet(isPresented: $showingAdviceDetail) {
+                )
                 if let advice = calendarInfo?.dailyAdvice {
-                    AdviceDetailView(advice: advice)
+                    DailyAdviceCard(advice: advice) {
+                        showingAdviceDetail = true
+                    }
+                }
+                if let calendarInfo = calendarInfo {
+                    SolarTermAndFestivalCard(calendarInfo: calendarInfo)
+                }
+                QuickActionsCard(
+                    showingNotificationSettingsSheet: $showingNotificationSettingsSheet,
+                    showingAppSettingsSheet: $showingAppSettingsSheet
+                )
+                Spacer(minLength: 100)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 10)
+        }
+        .background(Color.homeBackgroundGradient)
+        .navigationTitle("老黄历")
+        .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                if let calendarInfo = calendarInfo {
+                    Button {
+                        showShareSheet(for: calendarInfo)
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(.auspiciousRed)
+                    }
                 }
             }
-            .sheet(isPresented: $showingShareSheet) {
-                CalendarShareSheet(items: shareItems)
+        }
+        .refreshable {
+            loadCalendarInfo()
+        }
+        .sheet(isPresented: $showingAdviceDetail) {
+            if let advice = calendarInfo?.dailyAdvice {
+                AdviceDetailView(advice: advice)
             }
-            .sheet(isPresented: $showingNotificationSettingsSheet) {
-                NotificationSettingsView(settings: userService.notificationSettings)
-            }
-            .sheet(isPresented: $showingAppSettingsSheet) {
-                SettingsView()
-            }
-            .background(
-                VStack {
-                    NavigationLink(destination: FortuneView(), isActive: $showingFortuneView) { EmptyView() }
-                    NavigationLink(destination: AuspiciousDaysView(), isActive: $showingAuspiciousDaysView) { EmptyView() }
-                }
-            )
+        }
+        .sheet(isPresented: $showingShareSheet) {
+            CalendarShareSheet(items: shareItems)
+        }
+        .sheet(isPresented: $showingNotificationSettingsSheet) {
+            NotificationSettingsView(settings: userService.notificationSettings)
+        }
+        .sheet(isPresented: $showingAppSettingsSheet) {
+            SettingsView()
         }
         .onAppear {
             selectedDate = currentDate
@@ -442,89 +420,55 @@ struct SolarTermAndFestivalCard: View {
 
 // MARK: - 快速功能卡片
 struct QuickActionsCard: View {
-    @Binding var showingFortuneView: Bool
-    @Binding var showingAuspiciousDaysView: Bool
+    @EnvironmentObject var tabRouter: TabRouter
+    
     @Binding var showingNotificationSettingsSheet: Bool
     @Binding var showingAppSettingsSheet: Bool
 
     var body: some View {
         VStack(alignment: .leading, spacing: 24) {
-            // 顶部装饰条
-            Rectangle()
-                .fill(Color.festiveRedGradient)
-                .frame(height: 3)
-                .cornerRadius(1.5)
-            
+            Rectangle().fill(Color.festiveRedGradient).frame(height: 3).cornerRadius(1.5)
             HStack(spacing: 8) {
                 ZStack {
-                    Circle()
-                        .fill(Color.festiveRedGradient)
-                        .frame(width: 32, height: 32)
-                    
-                    Image(systemName: "bolt.fill")
-                        .font(.title3)
-                        .foregroundColor(.white)
+                    Circle().fill(Color.festiveRedGradient).frame(width: 32, height: 32)
+                    Image(systemName: "bolt.fill").font(.title3).foregroundColor(.white)
                 }
-                
-                Text("快速功能")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundStyle(Color.luckyRedGradient)
+                Text("快速功能").font(.title3).fontWeight(.bold).foregroundStyle(Color.luckyRedGradient)
             }
-            
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 16) {
                 EnhancedQuickActionButton(
-                    icon: "wand.and.stars.inverse",
-                    title: "今日运势",
-                    subtitle: "查看个人运势",
+                    icon: "wand.and.stars.inverse", title: "今日运势", subtitle: "查看个人运势",
                     gradient: Color.festiveRedGradient
                 ) {
-                    showingFortuneView = true
+                    tabRouter.changeTab(to: .fortune)
                 }
-                
                 EnhancedQuickActionButton(
-                    icon: "magnifyingglass",
-                    title: "吉日查询",
-                    subtitle: "寻找黄道吉日",
+                    icon: "magnifyingglass", title: "吉日查询", subtitle: "寻找黄道吉日",
                     gradient: Color.luckyRedGradient
                 ) {
-                    showingAuspiciousDaysView = true
+                    tabRouter.changeTab(to: .auspiciousDays)
                 }
-                
                 EnhancedQuickActionButton(
-                    icon: "bell.fill",
-                    title: "提醒设置",
-                    subtitle: "设置每日提醒",
+                    icon: "bell.fill", title: "提醒设置", subtitle: "设置每日提醒",
                     gradient: Color.goldenGradient
                 ) {
                     showingNotificationSettingsSheet = true
                 }
-                
                 EnhancedQuickActionButton(
-                    icon: "gearshape.fill",
-                    title: "应用设置",
-                    subtitle: "个人信息设置",
+                    icon: "gearshape.fill", title: "应用设置", subtitle: "个人信息设置",
                     gradient: Color.celebrationGradient
                 ) {
-                    showingAppSettingsSheet = true
+                    tabRouter.changeTab(to: .settings)
                 }
             }
-            
-            // 底部装饰条
-            Rectangle()
-                .fill(Color.festiveRedGradient)
-                .frame(height: 3)
-                .cornerRadius(1.5)
+            Rectangle().fill(Color.festiveRedGradient).frame(height: 3).cornerRadius(1.5)
         }
         .padding(24)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(Color.cardBackgroundGradient)
                 .shadow(color: Color.cardShadow, radius: 12, x: 0, y: 6)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.darkRedBorder, lineWidth: 2)
-                )
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.darkRedBorder, lineWidth: 2))
         )
     }
 }
@@ -981,4 +925,7 @@ struct EnhancedCalendarDayView: View {
 
 #Preview {
     HomeView()
+        .environmentObject(TabRouter())
+        .environmentObject(UserService.shared)
+        .environmentObject(CalendarService.shared)
 } 
