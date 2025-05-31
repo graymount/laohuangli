@@ -294,29 +294,54 @@ class CalendarService: ObservableObject {
         return "今日宜\(suitable.joined(separator: "、"))，忌\(unsuitable.joined(separator: "、"))。顺应天时，趋吉避凶。"
     }
     
-    // MARK: - 改进的个人运势分析
+    // MARK: - 增强的个人运势分析
     func getPersonalFortune(for date: Date, userProfile: UserProfile) -> PersonalFortune {
         let calendar = Calendar.current
         let dayOfYear = calendar.ordinality(of: .day, in: .year, for: date) ?? 0
         let birthMonth = calendar.component(.month, from: userProfile.birthday)
         let birthDay = calendar.component(.day, from: userProfile.birthday)
+        let birthYear = calendar.component(.year, from: userProfile.birthday)
         
-        // 结合生辰八字和当日信息计算运势
+        // 农历信息
         let lunarDate = convertToLunar(date: date)
         let birthLunar = convertToLunar(date: userProfile.birthday)
         
-        // 更复杂的运势计算算法
-        let fortuneIndex = calculateFortuneIndex(
+        // 计算五行属性
+        let birthElement = calculateBirthElement(year: birthYear, month: birthMonth, day: birthDay)
+        let dailyElement = calculateDailyElement(date: date)
+        let elementCompatibility = calculateElementCompatibility(birth: birthElement, daily: dailyElement)
+        
+        // 计算生日数字学
+        let birthNumber = calculateBirthNumber(day: birthDay)
+        let lifePath = calculateLifePath(birthday: userProfile.birthday)
+        
+        // 计算生物节律
+        let biorhythm = calculateBiorhythm(birthday: userProfile.birthday, currentDate: date)
+        
+        // 综合运势计算
+        let fortuneIndex = calculateEnhancedFortuneIndex(
             dayOfYear: dayOfYear,
             birthMonth: birthMonth,
             birthDay: birthDay,
             currentLunar: lunarDate,
             birthLunar: birthLunar,
             zodiacSign: userProfile.zodiacSign,
-            chineseZodiac: userProfile.chineseZodiac
+            chineseZodiac: userProfile.chineseZodiac,
+            birthElement: birthElement,
+            dailyElement: dailyElement,
+            biorhythm: biorhythm
         )
         
         let levels = FortuneLevel.allCases
+        
+        // 生成个性化建议
+        let personalizedAdvice = generatePersonalizedAdvice(
+            zodiacSign: userProfile.zodiacSign,
+            chineseZodiac: userProfile.chineseZodiac,
+            birthElement: birthElement,
+            lifePath: lifePath,
+            fortuneLevel: levels[fortuneIndex % 5]
+        )
         
         return PersonalFortune(
             overall: levels[fortuneIndex % 5],
@@ -325,30 +350,186 @@ class CalendarService: ObservableObject {
             career: levels[(fortuneIndex + 3) % 5],
             love: levels[(fortuneIndex + 4) % 5],
             advice: generateFortuneAdvice(level: levels[fortuneIndex % 5], zodiacSign: userProfile.zodiacSign),
-            luckyColor: getLuckyColor(for: fortuneIndex),
+            luckyColor: getElementLuckyColor(element: birthElement, fortuneIndex: fortuneIndex),
             luckyNumber: calculateLuckyNumber(fortuneIndex: fortuneIndex, birthDay: birthDay),
-            luckyDirection: getLuckyDirection(for: fortuneIndex)
+            luckyDirection: getLuckyDirection(for: fortuneIndex),
+            birthElement: birthElement,
+            dailyElement: dailyElement,
+            elementCompatibility: elementCompatibility,
+            birthNumber: birthNumber,
+            lifePath: lifePath,
+            personalizedAdvice: personalizedAdvice,
+            biorhythm: biorhythm
         )
     }
     
-    private func calculateFortuneIndex(
+    // MARK: - 五行计算方法
+    private func calculateBirthElement(year: Int, month: Int, day: Int) -> FiveElement {
+        // 根据年份天干地支计算五行
+        let heavenlyStemIndex = (year - 4) % 10
+        let elements: [FiveElement] = [.metal, .metal, .water, .water, .wood, .wood, .fire, .fire, .earth, .earth]
+        return elements[heavenlyStemIndex]
+    }
+    
+    private func calculateDailyElement(date: Date) -> FiveElement {
+        let calendar = Calendar.current
+        let dayOfYear = calendar.ordinality(of: .day, in: .year, for: date) ?? 0
+        return FiveElement.allCases[dayOfYear % 5]
+    }
+    
+    private func calculateElementCompatibility(birth: FiveElement, daily: FiveElement) -> ElementCompatibility {
+        if birth.supports == daily || birth.supportedBy == daily {
+            return .veryGood
+        } else if birth == daily {
+            return .good
+        } else if birth.restrainedBy == daily || daily.restrainedBy == birth {
+            return .poor
+        } else {
+            return .neutral
+        }
+    }
+    
+    // MARK: - 数字学计算
+    private func calculateBirthNumber(day: Int) -> Int {
+        return day > 9 ? (day / 10) + (day % 10) : day
+    }
+    
+    private func calculateLifePath(birthday: Date) -> LifePath {
+        let calendar = Calendar.current
+        let year = calendar.component(.year, from: birthday)
+        let month = calendar.component(.month, from: birthday)
+        let day = calendar.component(.day, from: birthday)
+        
+        let sum = reduceToSingleDigit(year) + reduceToSingleDigit(month) + reduceToSingleDigit(day)
+        let lifePath = reduceToSingleDigit(sum)
+        
+        return LifePath(rawValue: lifePath) ?? .one
+    }
+    
+    private func reduceToSingleDigit(_ number: Int) -> Int {
+        var num = number
+        while num > 9 {
+            let digits = String(num).compactMap { Int(String($0)) }
+            num = digits.reduce(0, +)
+        }
+        return num
+    }
+    
+    // MARK: - 生物节律计算
+    private func calculateBiorhythm(birthday: Date, currentDate: Date) -> Biorhythm {
+        let daysSinceBirth = Calendar.current.dateComponents([.day], from: birthday, to: currentDate).day ?? 0
+        
+        // 生物节律计算公式
+        let physical = sin(2 * Double.pi * Double(daysSinceBirth) / 23.0)
+        let emotional = sin(2 * Double.pi * Double(daysSinceBirth) / 28.0)
+        let intellectual = sin(2 * Double.pi * Double(daysSinceBirth) / 33.0)
+        
+        return Biorhythm(physical: physical, emotional: emotional, intellectual: intellectual)
+    }
+    
+    // MARK: - 增强的运势指数计算
+    private func calculateEnhancedFortuneIndex(
         dayOfYear: Int,
         birthMonth: Int,
         birthDay: Int,
         currentLunar: LunarDate,
         birthLunar: LunarDate,
         zodiacSign: ZodiacSign,
-        chineseZodiac: ChineseZodiac
+        chineseZodiac: ChineseZodiac,
+        birthElement: FiveElement,
+        dailyElement: FiveElement,
+        biorhythm: Biorhythm
     ) -> Int {
         // 综合多种因素计算运势指数
         let zodiacValue = ZodiacSign.allCases.firstIndex(of: zodiacSign) ?? 0
         let chineseZodiacValue = ChineseZodiac.allCases.firstIndex(of: chineseZodiac) ?? 0
         let lunarMonthValue = getLunarMonthValue(currentLunar.month)
         let lunarDayValue = getLunarDayValue(currentLunar.day)
+        let elementValue = FiveElement.allCases.firstIndex(of: birthElement) ?? 0
+        let dailyElementValue = FiveElement.allCases.firstIndex(of: dailyElement) ?? 0
         
-        return (dayOfYear + birthMonth * 31 + birthDay + zodiacValue * 7 + chineseZodiacValue * 11 + lunarMonthValue * 3 + lunarDayValue) % 100
+        // 生物节律影响
+        let biorhythmInfluence = Int((biorhythm.physical + biorhythm.emotional + biorhythm.intellectual) * 10)
+        
+        // 五行相配影响
+        let elementCompatibilityBonus = birthElement.supports == dailyElement ? 20 : 
+                                       (birthElement.restrainedBy == dailyElement ? -20 : 0)
+        
+        return (dayOfYear + birthMonth * 31 + birthDay + 
+                zodiacValue * 7 + chineseZodiacValue * 11 + 
+                lunarMonthValue * 3 + lunarDayValue + 
+                elementValue * 5 + dailyElementValue * 3 + 
+                biorhythmInfluence + elementCompatibilityBonus) % 100
     }
     
+    // MARK: - 个性化建议生成
+    private func generatePersonalizedAdvice(
+        zodiacSign: ZodiacSign,
+        chineseZodiac: ChineseZodiac,
+        birthElement: FiveElement,
+        lifePath: LifePath,
+        fortuneLevel: FortuneLevel
+    ) -> PersonalizedAdvice {
+        
+        let zodiacAdvice = getZodiacSpecificAdvice(zodiacSign: zodiacSign, level: fortuneLevel)
+        let chineseZodiacAdvice = getChineseZodiacAdvice(zodiac: chineseZodiac, level: fortuneLevel)
+        let elementAdvice = getElementAdvice(element: birthElement, level: fortuneLevel)
+        let numerologyAdvice = lifePath.todayAdvice
+        
+        let combinedAdvice = """
+        根据您的个人属性分析：
+        🌟 星座指导：\(zodiacAdvice)
+        🐾 生肖建议：\(chineseZodiacAdvice)
+        🔥 五行平衡：\(elementAdvice)
+        🔢 生命密码：\(numerologyAdvice)
+        """
+        
+        return PersonalizedAdvice(
+            zodiacAdvice: zodiacAdvice,
+            chineseZodiacAdvice: chineseZodiacAdvice,
+            elementAdvice: elementAdvice,
+            numerologyAdvice: numerologyAdvice,
+            combinedAdvice: combinedAdvice
+        )
+    }
+    
+    private func getChineseZodiacAdvice(zodiac: ChineseZodiac, level: FortuneLevel) -> String {
+        let baseAdvice: [ChineseZodiac: String] = [
+            .rat: "机智灵活是您的优势",
+            .ox: "踏实稳重带来成功",
+            .tiger: "勇气和决断力是关键",
+            .rabbit: "温和谨慎，广结善缘",
+            .dragon: "发挥领导才能，志向远大",
+            .snake: "深思熟虑，把握时机",
+            .horse: "积极进取，追求自由",
+            .goat: "善良温和，注重和谐",
+            .monkey: "聪明多变，灵活应对",
+            .rooster: "勤奋认真，注重细节",
+            .dog: "忠诚可靠，正义感强",
+            .pig: "真诚善良，福禄双全"
+        ]
+        
+        let base = baseAdvice[zodiac] ?? ""
+        let levelAdvice = level == .excellent ? "，今日特别有利" : 
+                         (level == .poor ? "，今日需要格外小心" : "")
+        
+        return base + levelAdvice
+    }
+    
+    private func getElementAdvice(element: FiveElement, level: FortuneLevel) -> String {
+        let advice = element.characteristics
+        let levelModifier = level == .excellent ? "能量充沛，" : 
+                           (level == .poor ? "能量不足，需要补充，" : "")
+        
+        return "\(levelModifier)五行属\(element.rawValue)，\(advice)"
+    }
+    
+    private func getElementLuckyColor(element: FiveElement, fortuneIndex: Int) -> String {
+        let colors = element.luckyColors
+        return colors[fortuneIndex % colors.count]
+    }
+    
+    // MARK: - 补充遗漏的方法
     private func generateFortuneAdvice(level: FortuneLevel, zodiacSign: ZodiacSign) -> String {
         let baseAdvice = switch level {
         case .excellent:
@@ -396,11 +577,6 @@ class CalendarService: ObservableObject {
         case .pisces:
             return level == .excellent ? "水象星座的同理心今日温暖人心。" : "保持理性，不要过于感性。"
         }
-    }
-    
-    private func getLuckyColor(for index: Int) -> String {
-        let colors = ["大红色", "金黄色", "翡翠绿", "宝石蓝", "紫罗兰", "橙红色", "银白色", "深绿色"]
-        return colors[index % colors.count]
     }
     
     private func calculateLuckyNumber(fortuneIndex: Int, birthDay: Int) -> Int {

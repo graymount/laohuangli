@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ProfileSetupView: View {
     @StateObject private var userService = UserService.shared
+    @StateObject private var calendarService = CalendarService.shared
     @Environment(\.dismiss) private var dismiss
     
     @State private var selectedBirthday = Date()
@@ -15,56 +16,73 @@ struct ProfileSetupView: View {
         userService.calculateChineseZodiac(from: selectedBirthday)
     }
     
+    private var lunarBirthday: LunarDate {
+        calendarService.getCalendarInfo(for: selectedBirthday).lunarDate
+    }
+    
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 24) {
                     // 头部说明
-                    VStack(spacing: 12) {
-                        Image(systemName: "person.crop.circle.badge.plus")
-                            .font(.system(size: 60))
-                            .foregroundColor(.purple)
+                    VStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.heroGradient)
+                                .frame(width: 80, height: 80)
+                                .shadow(color: Color.primaryShadow, radius: 8, x: 0, y: 4)
+                            
+                            Image(systemName: "person.crop.circle.badge.plus")
+                                .font(.system(size: 40, weight: .medium))
+                                .foregroundColor(.white)
+                        }
                         
-                        Text("设置个人信息")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                        
-                        Text("请选择您的出生日期，我们将为您提供个性化的运势分析")
-                            .font(.body)
-                            .foregroundColor(.secondary)
-                            .multilineTextAlignment(.center)
-                            .padding(.horizontal, 20)
+                        VStack(spacing: 8) {
+                            Text("设置个人信息")
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primaryText)
+                            
+                            Text("请选择您的出生日期，我们将为您提供个性化的运势分析")
+                                .font(.body)
+                                .foregroundColor(.secondaryText)
+                                .multilineTextAlignment(.center)
+                                .padding(.horizontal, 20)
+                        }
                     }
                     .padding(.top, 20)
                     
                     // 生日选择卡片
-                    BirthdaySelectionCard(selectedBirthday: $selectedBirthday)
+                    ModernBirthdaySelectionCard(
+                        selectedBirthday: $selectedBirthday,
+                        lunarBirthday: lunarBirthday
+                    )
                     
                     // 计算结果预览
-                    CalculatedInfoCard(
+                    ModernCalculatedInfoCard(
                         zodiacSign: calculatedZodiacSign,
                         chineseZodiac: calculatedChineseZodiac,
-                        selectedDate: selectedBirthday
+                        selectedDate: selectedBirthday,
+                        lunarBirthday: lunarBirthday
                     )
                     
                     // 保存按钮
                     Button(action: saveProfile) {
-                        HStack {
+                        HStack(spacing: 8) {
                             Image(systemName: "checkmark.circle.fill")
+                                .font(.headline)
                             Text("保存设置")
+                                .font(.headline)
+                                .fontWeight(.semibold)
                         }
-                        .font(.headline)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                         .background(
-                            LinearGradient(
-                                gradient: Gradient(colors: [.purple, .blue]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                            Capsule()
+                                .fill(Color.heroGradient)
+                                .shadow(color: Color.auspiciousRed.opacity(0.3), radius: 8, x: 0, y: 4)
                         )
-                        .cornerRadius(12)
                     }
                     .padding(.horizontal, 20)
                     
@@ -72,6 +90,7 @@ struct ProfileSetupView: View {
                 }
                 .padding(.horizontal, 16)
             }
+            .background(Color.homeBackgroundGradient.ignoresSafeArea())
             .navigationTitle("个人设置")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -79,6 +98,7 @@ struct ProfileSetupView: View {
                     Button("取消") {
                         dismiss()
                     }
+                    .foregroundColor(.auspiciousRed)
                 }
             }
         }
@@ -112,31 +132,52 @@ struct ProfileSetupView: View {
     }
 }
 
-// MARK: - 生日选择卡片
-struct BirthdaySelectionCard: View {
+// MARK: - 现代化生日选择卡片
+struct ModernBirthdaySelectionCard: View {
     @Binding var selectedBirthday: Date
+    let lunarBirthday: LunarDate
     
-    private var dateFormatter: DateFormatter {
+    private var gregorianFormatter: DateFormatter {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy年M月d日"
         formatter.locale = Locale(identifier: "zh_CN")
         return formatter
     }
     
+    private var weekdayFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE"
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter
+    }
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            HStack {
-                Image(systemName: "person.crop.circle.badge.plus")
-                    .foregroundColor(.purple)
-                Text("设置出生日期")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+            // 标题区域
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(Color.heroGradient)
+                        .frame(width: 32, height: 32)
+                    
+                    Image(systemName: "calendar")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                
+                Text("选择出生日期")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primaryText)
+                
+                Spacer()
             }
             
-            VStack(alignment: .leading, spacing: 12) {
-                Text("请选择您的出生日期，用于计算个人运势")
+            VStack(alignment: .leading, spacing: 16) {
+                Text("请选择您的出生日期，我们将计算您的星座、生肖和农历生日")
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(.secondaryText)
+                    .lineSpacing(2)
                 
                 // 日期选择器
                 DatePicker(
@@ -149,117 +190,280 @@ struct BirthdaySelectionCard: View {
                 .labelsHidden()
                 .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // 显示选择的日期
-                HStack {
-                    Text("您的生日：")
-                        .font(.body)
-                        .foregroundColor(.secondary)
+                // 选择日期预览区域
+                VStack(spacing: 12) {
+                    // 阳历生日显示
+                    HStack(spacing: 12) {
+                        Image(systemName: "calendar")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.infoBlue)
+                            .frame(width: 24)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("阳历生日")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondaryText)
+                            
+                            Text(gregorianFormatter.string(from: selectedBirthday))
+                                .font(.body)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primaryText)
+                        }
+                        
+                        Spacer()
+                        
+                        Text(weekdayFormatter.string(from: selectedBirthday))
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(.mutedText)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(
+                                Capsule()
+                                    .fill(Color.appSecondaryBackground)
+                            )
+                    }
                     
-                    Text(dateFormatter.string(from: selectedBirthday))
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundColor(.primary)
+                    Divider()
+                        .background(Color.mutedText.opacity(0.3))
+                    
+                    // 农历生日显示
+                    HStack(spacing: 12) {
+                        Image(systemName: "moon.stars")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(.auspiciousRed)
+                            .frame(width: 24)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("农历生日")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondaryText)
+                            
+                            Text("\(lunarBirthday.year) \(lunarBirthday.month)\(lunarBirthday.day)")
+                                .font(.body)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primaryText)
+                        }
+                        
+                        Spacer()
+                        
+                        if lunarBirthday.isLeapMonth {
+                            Text("闰月")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.warningOrange)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(
+                                    Capsule()
+                                        .fill(Color.warningOrange.opacity(0.15))
+                                )
+                        }
+                    }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .padding(16)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.purple.opacity(0.1))
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.appSecondaryBackground)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.infoBlue.opacity(0.2), lineWidth: 1)
+                        )
                 )
             }
         }
-        .padding(20)
+        .padding(24)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                .fill(Color.cardBackground)
+                .shadow(color: Color.cardShadow, radius: 8, x: 0, y: 4)
         )
     }
 }
 
-// MARK: - 计算信息卡片
-struct CalculatedInfoCard: View {
+// MARK: - 现代化计算信息卡片
+struct ModernCalculatedInfoCard: View {
     let zodiacSign: ZodiacSign
     let chineseZodiac: ChineseZodiac
     let selectedDate: Date
+    let lunarBirthday: LunarDate
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Image(systemName: "star.circle")
-                    .foregroundColor(.orange)
-                Text("您的星座信息")
-                    .font(.title2)
-                    .fontWeight(.semibold)
+        VStack(alignment: .leading, spacing: 20) {
+            // 标题区域
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(LinearGradient(colors: [.customGoldenYellow, .warningOrange], startPoint: .topLeading, endPoint: .bottomTrailing))
+                        .frame(width: 32, height: 32)
+                    
+                    Image(systemName: "star.circle")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                
+                Text("您的个人信息")
+                    .font(.title3)
+                    .fontWeight(.bold)
+                    .foregroundColor(.primaryText)
+                
+                Spacer()
             }
             
-            HStack(spacing: 16) {
-                // 星座信息
-                VStack(spacing: 8) {
-                    Image(systemName: "sparkles")
-                        .font(.title)
-                        .foregroundColor(.purple)
+            VStack(spacing: 16) {
+                // 星座和生肖信息行
+                HStack(spacing: 16) {
+                    // 星座信息
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(LinearGradient(colors: [.customSoftPurple, .customRoyalBlue], startPoint: .topLeading, endPoint: .bottomTrailing))
+                                .frame(width: 48, height: 48)
+                            
+                            Image(systemName: "sparkles")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                        }
+                        
+                        VStack(spacing: 4) {
+                            Text("星座")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondaryText)
+                            
+                            Text(zodiacSign.rawValue)
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primaryText)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.customSoftPurple.opacity(0.1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.customSoftPurple.opacity(0.3), lineWidth: 1)
+                            )
+                    )
                     
-                    Text("星座")
-                        .font(.body)
-                        .foregroundColor(.secondary)
-                    
-                    Text(zodiacSign.rawValue)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
+                    // 生肖信息
+                    VStack(spacing: 12) {
+                        ZStack {
+                            Circle()
+                                .fill(Color.festiveRedGradient)
+                                .frame(width: 48, height: 48)
+                            
+                            Image(systemName: "hare.fill")
+                                .font(.title2)
+                                .foregroundColor(.white)
+                        }
+                        
+                        VStack(spacing: 4) {
+                            Text("生肖")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondaryText)
+                            
+                            Text(chineseZodiac.rawValue)
+                                .font(.headline)
+                                .fontWeight(.bold)
+                                .foregroundColor(.primaryText)
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(16)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(Color.auspiciousRed.opacity(0.1))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.auspiciousRed.opacity(0.3), lineWidth: 1)
+                            )
+                    )
                 }
-                .frame(maxWidth: .infinity)
-                .padding(16)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.purple.opacity(0.1))
-                )
                 
-                // 生肖信息
-                VStack(spacing: 8) {
-                    Image(systemName: "hare")
-                        .font(.title)
-                        .foregroundColor(.red)
+                // 详细信息行
+                VStack(spacing: 12) {
+                    InfoDetailRow(
+                        icon: "calendar",
+                        label: "阳历生日",
+                        value: formatGregorianDate(selectedDate),
+                        color: .infoBlue
+                    )
                     
-                    Text("生肖")
-                        .font(.body)
-                        .foregroundColor(.secondary)
+                    InfoDetailRow(
+                        icon: "moon.stars",
+                        label: "农历生日", 
+                        value: "\(lunarBirthday.year) \(lunarBirthday.month)\(lunarBirthday.day)\(lunarBirthday.isLeapMonth ? " (闰月)" : "")",
+                        color: .auspiciousRed
+                    )
                     
-                    Text(chineseZodiac.rawValue)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
+                    InfoDetailRow(
+                        icon: "person.crop.circle",
+                        label: "属相",
+                        value: "\(chineseZodiac.rawValue)年",
+                        color: .customJadeGreen
+                    )
                 }
-                .frame(maxWidth: .infinity)
                 .padding(16)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.red.opacity(0.1))
+                        .fill(Color.appSecondaryBackground)
                 )
             }
         }
-        .padding(20)
+        .padding(24)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                .fill(Color.cardBackground)
+                .shadow(color: Color.cardShadow, radius: 8, x: 0, y: 4)
         )
+    }
+    
+    private func formatGregorianDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy年M月d日"
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter.string(from: date)
     }
 }
 
-struct FeatureItem: View {
-    let text: String
+// MARK: - 信息详情行
+struct InfoDetailRow: View {
+    let icon: String
+    let label: String
+    let value: String
+    let color: Color
     
     var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.body)
-                .foregroundColor(.green)
+        HStack(spacing: 12) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 32, height: 32)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(color)
+            }
             
-            Text(text)
-                .font(.body)
-                .foregroundColor(.secondary)
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondaryText)
+                
+                Text(value)
+                    .font(.body)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primaryText)
+            }
+            
+            Spacer()
         }
     }
 }
