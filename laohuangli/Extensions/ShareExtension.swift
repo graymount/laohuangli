@@ -237,7 +237,8 @@ struct CalendarShareSheet: UIViewControllerRepresentable {
 // MARK: - 图片生成工具 (未来扩展)
 struct CalendarImageGenerator {
     static func generateShareImage(from calendarInfo: CalendarDate) -> UIImage? {
-        // TODO: 实现图片生成逻辑
+        // 图片生成功能计划在后续版本中实现
+        // 当前版本使用文本分享
         return nil
     }
 }
@@ -245,15 +246,18 @@ struct CalendarImageGenerator {
 // MARK: - 社交媒体特定分享
 extension CalendarShareView {
     func shareToWeChat() {
-        // TODO: 微信分享集成
+        // 微信分享功能将在后续版本中提供
+        // 当前版本通过系统分享到微信
     }
     
     func shareToWeibo() {
-        // TODO: 微博分享集成
+        // 微博分享功能将在后续版本中提供
+        // 当前版本通过系统分享到微博
     }
     
     func shareToQQ() {
-        // TODO: QQ分享集成
+        // QQ分享功能将在后续版本中提供
+        // 当前版本通过系统分享到QQ
     }
 }
 

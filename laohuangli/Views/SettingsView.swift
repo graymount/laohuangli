@@ -6,6 +6,7 @@ struct SettingsView: View {
     @State private var showingProfileSetup = false
     @State private var showingAbout = false
     @State private var showingNotificationSettings = false
+    @State private var showingRateAppAlert = false
     
     var body: some View {
         NavigationView {
@@ -90,7 +91,13 @@ struct SettingsView: View {
                             }
                             .buttonStyle(PlainButtonStyle())
                             
-                            Button(action: rateApp) {
+                            Button(action: {
+                                if AppConfig.isAppStoreReleased {
+                                    rateApp()
+                                } else {
+                                    showingRateAppAlert = true
+                                }
+                            }) {
                                 ModernSettingRow(
                                     icon: "star.fill",
                                     title: "给个好评",
@@ -145,6 +152,11 @@ struct SettingsView: View {
         .sheet(isPresented: $showingNotificationSettings) {
             NotificationSettingsView(settings: userService.notificationSettings)
         }
+        .alert("提示", isPresented: $showingRateAppAlert) {
+            Button("好的") { }
+        } message: {
+            Text("应用尚未上架 App Store，敬请期待！")
+        }
     }
     
     private func shareApp() {
@@ -171,7 +183,7 @@ struct SettingsView: View {
     
     private func rateApp() {
         // 在实际应用中，这里应该跳转到App Store评价页面
-        if let url = URL(string: "https://apps.apple.com/app/id123456789") {
+        if let url = URL(string: "https://apps.apple.com/app/id\(AppConfig.appStoreID ?? "")") {
             UIApplication.shared.open(url)
         }
     }
